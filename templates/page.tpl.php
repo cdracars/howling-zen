@@ -115,6 +115,7 @@
   <div id="main">
 
     <div id="content" class="column" role="main">
+      <?php print $feed_icons; ?>
       <?php print render($page['highlighted']); ?>
       <?php print $breadcrumb; ?>
       <a id="main-content"></a>
@@ -130,7 +131,6 @@
         <ul class="action-links"><?php print render($action_links); ?></ul>
       <?php endif; ?>
       <?php print render($page['content']); ?>
-      <?php print $feed_icons; ?>
     </div><!-- /#content -->
 
     <div id="navigation">
@@ -170,7 +170,6 @@
       <aside class="sidebars">
         <?php print $sidebar_first; ?>
         <?php print $sidebar_second; ?>
-        <div class="sidebar-bg"></div>
       </aside><!-- /.sidebars -->
     <?php endif; ?>
 
