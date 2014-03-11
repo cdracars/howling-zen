@@ -165,10 +165,10 @@ function howling_zen_pager($variables) {
   }
   // End of generation loop preparation.
 
-  $li_last = theme('pager_first', array('text' => (isset($tags[4]) ? $tags[4] : t('First')), 'element' => $element, 'parameters' => $parameters));
-  $li_next = theme('pager_previous', array('text' => (isset($tags[3]) ? $tags[3] : t('Previous')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
-  $li_previous = theme('pager_next', array('text' => (isset($tags[1]) ? $tags[1] : t('Next')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
-  $li_first = theme('pager_last', array('text' => (isset($tags[0]) ? $tags[0] : t('Latest')), 'element' => $element, 'parameters' => $parameters));
+  $li_last = theme('pager_first', array('text' => (isset($tags[4]) ? $tags[4] : t('« first')), 'element' => $element, 'parameters' => $parameters));
+  $li_next = theme('pager_previous', array('text' => (isset($tags[3]) ? $tags[3] : t('‹ previous')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
+  $li_previous = theme('pager_next', array('text' => (isset($tags[1]) ? $tags[1] : t('next ›')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
+  $li_first = theme('pager_last', array('text' => (isset($tags[0]) ? $tags[0] : t('latest »')), 'element' => $element, 'parameters' => $parameters));
 
   if ($pager_total[$element] > 1) {
     if ($li_first) {
@@ -177,27 +177,16 @@ function howling_zen_pager($variables) {
         'data' => $li_first,
       );
     }
-    else {
-      $items[] = array(
-        'class' => array('pager-first'),
-        'data' => 'First',
-      );
-    }
     if ($li_previous) {
       $items[] = array(
         'class' => array('pager-previous'),
         'data' => $li_previous,
       );
     }
-    else {
-      $items[] = array(
-        'class' => array('pager-first'),
-        'data' => 'Previous',
-      );
-    }
 
     // When there is more than one page, create the pager list.
     if ($i != $pager_max) {
+      print_r($i);
       if ($i > 1) {
         $items[] = array(
           'class' => array('pager-ellipsis'),
@@ -242,7 +231,7 @@ function howling_zen_pager($variables) {
     else {
       $items[] = array(
         'class' => array('pager-last'),
-        'data' => 'Next',
+        'data' => 'Next >',
       );
     }
     if ($li_last) {
@@ -254,7 +243,7 @@ function howling_zen_pager($variables) {
     else {
       $items[] = array(
         'class' => array('pager-last'),
-        'data' => 'Latest',
+        'data' => 'Latest >>',
       );
     }
     return '<h2 class="element-invisible">' . t('Pages') . '</h2>' . theme('item_list', array(
