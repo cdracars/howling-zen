@@ -3,102 +3,8 @@
  * @file
  * Contains the theme's functions to manipulate Drupal's default markup.
  *
- * A QUICK OVERVIEW OF DRUPAL THEMING
- *
- *   The default HTML for all of Drupal's markup is specified by its modules.
- *   For example, the comment.module provides the default HTML markup and CSS
- *   styling that is wrapped around each comment. Fortunately, each piece of
- *   markup can optionally be overridden by the theme.
- *
- *   Drupal deals with each chunk of content using a "theme hook". The raw
- *   content is placed in PHP variables and passed through the theme hook, which
- *   can either be a template file (which you should already be familiary with)
- *   or a theme function. For example, the "comment" theme hook is implemented
- *   with a comment.tpl.php template file, but the "breadcrumb" theme hooks is
- *   implemented with a theme_breadcrumb() theme function. Regardless if the
- *   theme hook uses a template file or theme function, the template or function
- *   does the same kind of work; it takes the PHP variables passed to it and
- *   wraps the raw content with the desired HTML markup.
- *
- *   Most theme hooks are implemented with template files. Theme hooks that use
- *   theme functions do so for performance reasons - theme_field() is faster
- *   than a field.tpl.php - or for legacy reasons - theme_breadcrumb() has "been
- *   that way forever."
- *
- *   The variables used by theme functions or template files come from a handful
- *   of sources:
- *   - the contents of other theme hooks that have already been rendered into
- *     HTML. For example, the HTML from theme_breadcrumb() is put into the
- *     $breadcrumb variable of the page.tpl.php template file.
- *   - raw data provided directly by a module (often pulled from a database)
- *   - a "render element" provided directly by a module. A render element is a
- *     nested PHP array which contains both content and meta data with hints on
- *     how the content should be rendered. If a variable in a template file is a
- *     render element, it needs to be rendered with the render() function and
- *     then printed using:
- *       <?php print render($variable); ?>
- *
- * ABOUT THE TEMPLATE.PHP FILE
- *
- *   The template.php file is one of the most useful files when creating or
- *   modifying Drupal themes. With this file you can do three things:
- *   - Modify any theme hooks variables or add your own variables, using
- *     preprocess or process functions.
- *   - Override any theme function. That is, replace a module's default theme
- *     function with one you write.
- *   - Call hook_*_alter() functions which allow you to alter various parts of
- *     Drupal's internals, including the render elements in forms. The most
- *     useful of which include hook_form_alter(), hook_form_FORM_ID_alter(),
- *     and hook_page_alter(). See api.drupal.org for more information about
- *     _alter functions.
- *
- * OVERRIDING THEME FUNCTIONS
- *
- *   If a theme hook uses a theme function, Drupal will use the default theme
- *   function unless your theme overrides it. To override a theme function, you
- *   have to first find the theme function that generates the output. (The
- *   api.drupal.org website is a good place to find which file contains which
- *   function.) Then you can copy the original function in its entirety and
- *   paste it in this template.php file, changing the prefix from theme_ to
- *   howling_zen_. For example:
- *
- *     original, found in modules/field/field.module: theme_field()
- *     theme override, found in template.php: howling_zen_field()
- *
- *   where howling_zen is the name of your sub-theme. For example, the
- *   zen_classic theme would define a zen_classic_field() function.
- *
- *   Note that base themes can also override theme functions. And those
- *   overrides will be used by sub-themes unless the sub-theme chooses to
- *   override again.
- *
- *   Zen core only overrides one theme function. If you wish to override it, you
- *   should first look at how Zen core implements this function:
- *     theme_breadcrumbs()      in zen/template.php
- *
- *   For more information, please visit the Theme Developer's Guide on
- *   Drupal.org: http://drupal.org/node/173880
- *
- * CREATE OR MODIFY VARIABLES FOR YOUR THEME
- *
- *   Each tpl.php template file has several variables which hold various pieces
- *   of content. You can modify those variables (or add new ones) before they
- *   are used in the template files by using preprocess functions.
- *
- *   This makes THEME_preprocess_HOOK() functions the most powerful functions
- *   available to themers.
- *
- *   It works by having one preprocess function for each template file or its
- *   derivatives (called theme hook suggestions). For example:
- *     THEME_preprocess_page    alters the variables for page.tpl.php
- *     THEME_preprocess_node    alters the variables for node.tpl.php or
- *                              for node--forum.tpl.php
- *     THEME_preprocess_comment alters the variables for comment.tpl.php
- *     THEME_preprocess_block   alters the variables for block.tpl.php
- *
- *   For more information on preprocess functions and theme hook suggestions,
- *   please visit the Theme Developer's Guide on Drupal.org:
- *   http://drupal.org/node/223440 and http://drupal.org/node/1089656
+ * Complete documentation for this file is available online.
+ * @see https://drupal.org/node/1728096
  */
 
 
@@ -165,7 +71,7 @@ function howling_zen_preprocess_node(&$variables, $hook) {
   $variables['sample_variable'] = t('Lorem ipsum.');
 
   // Optionally, run node-type-specific preprocess functions, like
-  // howling_zen_preprocess_node_page() or howling_zen_preprocess_node_story().
+  // howling_zen_preprocess_node_page() or STARTERKIT_preprocess_node_story().
   $function = __FUNCTION__ . '_' . $variables['node']->type;
   if (function_exists($function)) {
     $function($variables, $hook);
@@ -224,3 +130,137 @@ function howling_zen_preprocess_block(&$variables, $hook) {
   //}
 }
 // */
+
+function howling_zen_pager($variables) {
+  $tags = $variables['tags'];
+  $element = $variables['element'];
+  $parameters = $variables['parameters'];
+  $quantity = $variables['quantity'];
+  global $pager_page_array, $pager_total;
+
+  // Calculate various markers within this pager piece:
+  // Middle is used to "center" pages around the current page.
+  $pager_middle = ceil($quantity / 2);
+  // current is the page we are currently paged to
+  $pager_current = $pager_page_array[$element] + 1;
+  // first is the first page listed by this pager piece (re quantity)
+  $pager_first = $pager_current - $pager_middle + 1;
+  // last is the last page listed by this pager piece (re quantity)
+  $pager_last = $pager_current + $quantity - $pager_middle;
+  // max is the maximum page number
+  $pager_max = $pager_total[$element];
+  // End of marker calculations.
+
+  // Prepare for generation loop.
+  $i = $pager_first;
+  if ($pager_last > $pager_max) {
+    // Adjust "center" if at end of query.
+    $i = $i + ($pager_max - $pager_last);
+    $pager_last = $pager_max;
+  }
+  if ($i <= 0) {
+    // Adjust "center" if at start of query.
+    $pager_last = $pager_last + (1 - $i);
+    $i = 1;
+  }
+  // End of generation loop preparation.
+
+  $li_last = theme('pager_first', array('text' => (isset($tags[4]) ? $tags[4] : t('First')), 'element' => $element, 'parameters' => $parameters));
+  $li_next = theme('pager_previous', array('text' => (isset($tags[3]) ? $tags[3] : t('Previous')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
+  $li_previous = theme('pager_next', array('text' => (isset($tags[1]) ? $tags[1] : t('Next')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
+  $li_first = theme('pager_last', array('text' => (isset($tags[0]) ? $tags[0] : t('Latest')), 'element' => $element, 'parameters' => $parameters));
+
+  if ($pager_total[$element] > 1) {
+    if ($li_first) {
+      $items[] = array(
+        'class' => array('pager-first'),
+        'data' => $li_first,
+      );
+    }
+    else {
+      $items[] = array(
+        'class' => array('pager-first'),
+        'data' => 'First',
+      );
+    }
+    if ($li_previous) {
+      $items[] = array(
+        'class' => array('pager-previous'),
+        'data' => $li_previous,
+      );
+    }
+    else {
+      $items[] = array(
+        'class' => array('pager-first'),
+        'data' => 'Previous',
+      );
+    }
+
+    // When there is more than one page, create the pager list.
+    if ($i != $pager_max) {
+      print_r($i);
+      if ($i > 1) {
+        $items[] = array(
+          'class' => array('pager-ellipsis'),
+          'data' => '',
+        );
+      }
+      // Now generate the actual pager piece.
+      for (; $i <= $pager_last && $i <= $pager_max; $i++) {
+        if ($i < $pager_current) {
+          $items[] = array(
+            'class' => array('pager-item'),
+            'data' => theme('pager_previous', array('text' => $i, 'element' => $element, 'interval' => ($pager_current - $i), 'parameters' => $parameters)),
+          );
+        }
+        if ($i == $pager_current) {
+          $items[] = array(
+            'class' => array('pager-current'),
+            'data' => $i,
+          );
+        }
+        if ($i > $pager_current) {
+          $items[] = array(
+            'class' => array('pager-item'),
+            'data' => theme('pager_next', array('text' => $i, 'element' => $element, 'interval' => ($i - $pager_current), 'parameters' => $parameters)),
+          );
+        }
+      }
+      if ($i < $pager_max) {
+        $items[] = array(
+          'class' => array('pager-ellipsis'),
+          'data' => '',
+        );
+      }
+    }
+    // End generation.
+    if ($li_next) {
+      $items[] = array(
+        'class' => array('pager-next'),
+        'data' => $li_next,
+      );
+    }
+    else {
+      $items[] = array(
+        'class' => array('pager-last'),
+        'data' => 'Next',
+      );
+    }
+    if ($li_last) {
+      $items[] = array(
+        'class' => array('pager-last'),
+        'data' => $li_last,
+      );
+    }
+    else {
+      $items[] = array(
+        'class' => array('pager-last'),
+        'data' => 'Latest',
+      );
+    }
+    return '<h2 class="element-invisible">' . t('Pages') . '</h2>' . theme('item_list', array(
+      'items' => $items,
+      'attributes' => array('class' => array('pager')),
+    ));
+  }
+}
